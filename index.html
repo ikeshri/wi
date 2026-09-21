@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AestheticWish Studio 💌</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --card: #ffffff;
+      --text: #2d2a26;
+      --sub: #8c827a;
+      --primary: #ff85a2;
+      --primary-soft: #ffeef2;
+      --border: #f0e6dc;
+      --accent: #b5838d;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent !important;
+      outline: none !important;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .wrapper {
+      max-width: 460px;
+      width: 100%;
+      margin: 0 auto;
+      padding-bottom: 30px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-top: 10px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    p.tagline {
+      font-size: 13px;
+      color: var(--sub);
+      margin-top: 4px;
+    }
+    .scrapbook-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 24px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 25px rgba(220, 205, 195, 0.35);
+      position: relative;
+    }
+    .card-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mood-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .mood-btn {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .mood-btn.active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .input-box {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 13.5px;
+      color: var(--text);
+      margin-bottom: 10px;
+      transition: 0.2s;
+    }
+    .input-box:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+    textarea.input-box {
+      height: 120px;
+      resize: none;
+      font-family: 'Caveat', cursive;
+      font-size: 20px;
+      line-height: 1.4;
+      color: #3d352e;
+    }
+    .sticker-selector {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .sticker-selector::-webkit-scrollbar { display: none; }
+    .sticker-pill {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .sticker-pill.active {
+      background: #fff0f3;
+      border-color: #ff85a2;
+      color: #d81159;
+    }
+    .btn-create {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #ff85a2, #e56b87);
+      border: none;
+      border-radius: 16px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 10px 20px rgba(255, 133, 162, 0.4);
+      transition: 0.2s;
+    }
+    .btn-create:active { transform: scale(0.98); }
+    #result-box {
+      display: none;
+      background: #fff5f7;
+      border: 1.5px dashed var(--primary);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <header>
+      <div class="badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Aesthetic Cute Engine</div>
+      <h1>Create Soft Letter 💌</h1>
+      <p class="tagline">Wax-sealed digital envelope with typewriter live notes & vinyl music.</p>
+    </header>
+
+    <div class="scrapbook-card">
+      <div class="card-label"><i class="fa-solid fa-heart"></i> Select Vibe & Mood</div>
+      <div class="mood-grid">
+        <button type="button" class="mood-btn active" onclick="setMood(this, 'love', '❤️ My Endless Love')">🧸 Cute Love</button>
+        <button type="button" class="mood-btn" onclick="setMood(this, 'birthday', '🎂 Birthday Magic')">🍰 Birthday Wish</button>
+        <button type="button" class="mood-btn" onclick="setMood(this, 'sorry', '🥺 Soft Apology')">🩹 Sorry / Patch-up</button>
+        <button type="button" class="mood-btn" onclick="setMood(this, 'bestie', '🤝 Forever Bestie')">🎀 Sweet Friendship</button>
+      </div>
+    </div>
+
+    <div class="scrapbook-card">
+      <div class="card-label"><i class="fa-solid fa-feather"></i> The Secret Letter</div>
+      <input type="text" id="for-name" class="input-box" placeholder="Dear... (Nickname / Name)">
+      <textarea id="letter-msg" class="input-box" placeholder="Write your letter here... It will live-type like an actual typewriter!"></textarea>
+      
+      <div class="card-label" style="margin-top: 8px;"><i class="fa-solid fa-icons"></i> Cute Floating Stickers</div>
+      <div class="sticker-selector">
+        <div class="sticker-pill active" onclick="setSticker(this, 'teddy')">🧸 Teddies & Hearts</div>
+        <div class="sticker-pill" onclick="setSticker(this, 'strawberry')">🍓 Strawberries & Bows</div>
+        <div class="sticker-pill" onclick="setSticker(this, 'butterflies')">🦋 Soft Butterflies</div>
+        <div class="sticker-pill" onclick="setSticker(this, 'sparkles')">✨ Pastel Sparkles</div>
+      </div>
+    </div>
+
+    <div class="scrapbook-card">
+      <div class="card-label"><i class="fa-brands fa-spotify"></i> Spotify Aesthetic Vinyl Song</div>
+      <input type="text" id="yt-song" class="input-box" placeholder="Paste YouTube link (Plays as revolving Vinyl CD)">
+      <input type="password" id="letter-pin" class="input-box" maxlength="4" placeholder="4-Digit secret wax seal code (Optional)">
+      <input type="text" id="my-insta" class="input-box" placeholder="Your Instagram username (for direct reply)">
+
+      <button type="button" class="btn-create" onclick="generateAestheticLetter()">
+        <i class="fa-solid fa-envelope-open-text"></i> Seal & Generate Cute Envelope
+      </button>
+
+      <div id="result-box">
+        <p style="font-size:12px; font-weight:bold; color:var(--primary); margin-bottom:8px;">✔ Your Aesthetic Envelope is Sealed!</p>
+        <input type="text" id="link-output" class="input-box" readonly style="text-align:center; font-weight:700; color:#d81159;">
+        <button class="btn-create" style="background:#2d2a26; padding:11px; font-size:13px;" onclick="copyCuteLink()">
+          <i class="fa-regular fa-copy"></i> Copy Letter Link
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBlYdZljqsNcZvlky107-spvhIH7235UTk",
+      databaseURL: "https://cyberwish-521fd-default-rtdb.firebaseio.com",
+      projectId: "cyberwish-521fd",
+      appId: "1:158188886863:web:c04bac173f7a141732933a"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let activeMood = 'love';
+    let moodTitle = '❤️ My Endless Love';
+    let activeStickers = 'teddy';
+
+    const defaultNotes = {
+      love: "If I had a flower for every time I thought of you, I could walk through my garden forever. You are my softest thought and my safest home. 🌸",
+      birthday: "May your day be filled with warm smiles, sweet strawberries, and all the quiet magic your gentle heart deserves. Happy Birthday! 🎂✨",
+      sorry: "My world feels heavy when you are quiet. I'm truly sorry from the bottom of my heart. Can we start a soft fresh chapter together? 🥺",
+      bestie: "Thank you for being my constant warmth, my loudest laughter, and my favorite person to be silly with. Besties forever! 🎀"
+    };
+
+    document.getElementById('letter-msg').value = defaultNotes.love;
+
+    function setMood(btn, moodKey, title) {
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeMood = moodKey;
+      moodTitle = title;
+      document.getElementById('letter-msg').value = defaultNotes[moodKey];
+    }
+
+    function setSticker(pill, stickerKey) {
+      document.querySelectorAll('.sticker-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeStickers = stickerKey;
+    }
+
+    function extractYT(url) {
+      if (!url) return null;
+      const reg = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const m = url.match(reg);
+      return (m && m[2].length === 11) ? m[2] : null;
+    }
+
+    function generateKey() {
+      const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let r = "";
+      for(let i=0; i<6; i++) r += c.charAt(Math.floor(Math.random()*c.length));
+      return r;
+    }
+
+    function generateAestheticLetter() {
+      const name = document.getElementById('for-name').value.trim() || 'My Sweetheart';
+      const msg = document.getElementById('letter-msg').value.trim();
+      const yt = extractYT(document.getElementById('yt-song').value.trim());
+      const pin = document.getElementById('letter-pin').value.trim();
+      const insta = document.getElementById('my-insta').value.trim().replace('@', '');
+
+      const key = generateKey();
+      db.ref('cute_letters/' + key).set({
+        name: name,
+        moodTitle: moodTitle,
+        message: msg,
+        stickers: activeStickers,
+        ytId: yt || null,
+        pin: pin || null,
+        replyInsta: insta || null,
+        createdAt: Date.now()
+      }).then(() => {
+        const fullUrl = new URL('view.html?id=' + key, window.location.href).href;
+        document.getElementById('link-output').value = fullUrl;
+        document.getElementById('result-box').style.display = 'block';
+        document.getElementById('result-box').scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+
+    function copyCuteLink() {
+      const b = document.getElementById('link-output');
+      b.select();
+      navigator.clipboard.writeText(b.value);
+      alert("💌 Cute letter link copied to clipboard!");
+    }
+  </script>
+</body>
+</html>
