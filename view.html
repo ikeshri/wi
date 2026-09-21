@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>A Quiet Letter For You 💌</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent !important;
+      outline: none !important;
+    }
+    body {
+      background: #fdfbf7;
+      color: #3b3734;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      position: relative;
+    }
+    #floating-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+    #yt-hidden { position: absolute; width: 2px; height: 2px; opacity: 0.01; pointer-events: none; }
+
+    /* Wax-Sealed Vintage Envelope Stage */
+    #stage-envelope {
+      text-align: center;
+      cursor: pointer;
+      z-index: 10;
+      animation: gentleFloat 3s ease-in-out infinite alternate;
+    }
+    @keyframes gentleFloat { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+
+    .envelope-box {
+      width: 260px;
+      height: 180px;
+      background: #f4ece1;
+      border: 2px solid #e2d3c3;
+      border-radius: 16px;
+      position: relative;
+      margin: 0 auto 16px;
+      box-shadow: 0 15px 35px rgba(184, 161, 142, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wax-seal {
+      width: 55px;
+      height: 55px;
+      background: #c94a53;
+      border-radius: 50%;
+      box-shadow: 0 4px 15px rgba(201, 74, 83, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 22px;
+      border: 2px dashed rgba(255,255,255,0.4);
+    }
+
+    /* Secret Passcode Screen */
+    #pin-box {
+      display: none;
+      background: #fff;
+      border: 2px solid #ffccd5;
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 300px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(255, 182, 193, 0.3);
+      z-index: 20;
+    }
+
+    /* Aesthetic Letter Card */
+    #stage-letter {
+      display: none;
+      max-width: 420px;
+      width: 100%;
+      max-height: 88vh;
+      background: #ffffff;
+      border: 1px solid #f0e4d7;
+      border-radius: 24px;
+      padding: 26px 22px;
+      box-shadow: 0 15px 40px rgba(215, 195, 177, 0.35);
+      z-index: 10;
+      position: relative;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    #stage-letter::-webkit-scrollbar { display: none; }
+
+    .tape-strip {
+      width: 90px;
+      height: 24px;
+      background: rgba(243, 217, 191, 0.6);
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%) rotate(-2deg);
+      border-radius: 4px;
+    }
+    .letter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      border-bottom: 1px dashed #eedecf;
+      padding-bottom: 10px;
+    }
+    .badge-vibe {
+      font-size: 12px;
+      font-weight: 700;
+      color: #b5838d;
+      background: #fff0f3;
+      padding: 3px 10px;
+      border-radius: 12px;
+    }
+    .recipient-name {
+      font-family: 'Caveat', cursive;
+      font-size: 28px;
+      color: #2b2723;
+      margin-bottom: 8px;
+    }
+    .letter-body {
+      font-family: 'Caveat', cursive;
+      font-size: 23px;
+      line-height: 1.5;
+      color: #4a433e;
+      min-height: 120px;
+      white-space: pre-wrap;
+    }
+
+    /* Revolving Spotify Vinyl Player */
+    .vinyl-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fdf7f4;
+      border: 1px solid #fae6de;
+      border-radius: 50px;
+      padding: 6px 14px;
+      margin: 16px 0;
+    }
+    .vinyl-disc {
+      width: 38px;
+      height: 38px;
+      background: #242220;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      animation: spin 3.5s linear infinite;
+    }
+    .vinyl-center {
+      width: 14px;
+      height: 14px;
+      background: #ff85a2;
+      border-radius: 50%;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Interactive Cute Yes/No */
+    .cute-arena {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 14px;
+      min-height: 50px;
+      position: relative;
+    }
+    .btn-cute-yes {
+      background: #ff85a2;
+      color: #fff;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255, 133, 162, 0.4);
+      transition: all 0.2s;
+    }
+    .btn-cute-no {
+      background: #eee4dc;
+      color: #7d7269;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .insta-reply-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #2d2a26;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="floating-canvas"></canvas>
+  <div id="yt-hidden"></div>
+
+  <!-- Stage 1: Wax Sealed Envelope -->
+  <div id="stage-envelope" onclick="openEnvelope()">
+    <div class="envelope-box">
+      <div class="wax-seal"><i class="fa-solid fa-heart"></i></div>
+    </div>
+    <h2 style="font-size: 18px; color:#2d2a26;">A Secret Letter For You</h2>
+    <p style="font-size: 12px; color:#8c827a; margin-top: 4px;">💌 Tap the seal to open gently</p>
+  </div>
+
+  <!-- Stage 1.5: Passcode Lock -->
+  <div id="pin-box">
+    <div style="font-size:32px; color:#ff85a2; margin-bottom:6px;"><i class="fa-solid fa-lock"></i></div>
+    <h3 style="font-size:16px;">Wax Seal Protected</h3>
+    <p style="font-size:11px; color:#8c827a; margin-bottom:12px;">Enter the 4-digit secret key</p>
+    <input type="password" id="pin-in" maxlength="4" style="width:100%; text-align:center; font-size:22px; letter-spacing:8px; padding:10px; border:1.5px solid #ffccd5; border-radius:12px; margin-bottom:12px;">
+    <button class="btn-cute-yes" style="width:100%;" onclick="checkPin()">Unlock Letter</button>
+  </div>
+
+  <!-- Stage 2: Aesthetic Typewriter Letter -->
+  <div id="stage-letter">
+    <div class="tape-strip"></div>
+    <div class="letter-header">
+      <span class="badge-vibe" id="vibe-tag">❤️ Cute Note</span>
+      <span style="font-size: 11px; color:#a39588;">Opened with love 🌸</span>
+    </div>
+
+    <div class="recipient-name" id="view-name">Dearest,</div>
+    <div class="letter-body" id="typewriter-text"></div>
+
+    <!-- Revolving Vinyl Music -->
+    <div class="vinyl-bar" id="vinyl-wrap" style="display:none;">
+      <div class="vinyl-disc"><div class="vinyl-center"></div></div>
+      <div style="font-size:11.5px; font-weight:700; color:#5c544d;">Playing Romantic Vinyl Tape ✨</div>
+    </div>
+
+    <!-- Cute Reaction Question -->
+    <div id="question-block" style="display:none; text-align:center; margin-top:14px;">
+      <p style="font-size:13px; font-weight:700; color:#4a433e;" id="ask-text">Did this bring a warm smile to your face? 🥺</p>
+      <div class="cute-arena" id="arena">
+        <button class="btn-cute-yes" id="btn-yes" onclick="cuteYes()">Yes, it did! 🌸</button>
+        <button class="btn-cute-no" id="btn-no" onmouseover="dodgeCuteNo()" onclick="dodgeCuteNo()">No 🙈</button>
+      </div>
+    </div>
+
+    <!-- Final Instagram DM -->
+    <div id="final-block" style="display:none; text-align:center; margin-top:14px;">
+      <p style="font-size:14px; font-weight:800; color:#ff85a2;">Yay! Your smile makes everything softer. 💖</p>
+      <a href="#" target="_blank" class="insta-reply-btn" id="insta-send-btn">
+        <i class="fa-brands fa-instagram"></i> Send Sweet Reply on Instagram
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBlYdZljqsNcZvlky107-spvhIH7235UTk",
+      databaseURL: "https://cyberwish-521fd-default-rtdb.firebaseio.com",
+      projectId: "cyberwish-521fd",
+      appId: "1:158188886863:web:c04bac173f7a141732933a"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let letterData = null;
+    let noDodges = 0;
+    let yesScale = 1.0;
+
+    const params = new URLSearchParams(window.location.search);
+    const letterId = params.get('id');
+
+    if(letterId) {
+      db.ref('cute_letters/' + letterId).once('value').then(snap => {
+        if(snap.exists()) {
+          letterData = snap.val();
+          document.getElementById('vibe-tag').innerText = letterData.moodTitle || '💌 Sweet Note';
+          document.getElementById('view-name').innerText = (letterData.name || 'Dearest') + ',';
+          if(letterData.replyInsta) {
+            document.getElementById('insta-send-btn').href = 'https://instagram.com/' + letterData.replyInsta;
+          }
+          initCanvasStickers(letterData.stickers || 'teddy');
+        }
+      });
+    }
+
+    function openEnvelope() {
+      if(!letterData) return;
+      if(letterData.pin) {
+        document.getElementById('stage-envelope').style.display = 'none';
+        document.getElementById('pin-box').style.display = 'block';
+      } else {
+        revealLetter();
+      }
+    }
+
+    function checkPin() {
+      const entered = document.getElementById('pin-in').value.trim();
+      if(entered === letterData.pin) {
+        document.getElementById('pin-box').style.display = 'none';
+        revealLetter();
+      } else {
+        alert("Incorrect wax seal code! 🌸");
+      }
+    }
+
+    function revealLetter() {
+      document.getElementById('stage-envelope').style.display = 'none';
+      document.getElementById('stage-letter').style.display = 'block';
+      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+
+      if(letterData.ytId) {
+        document.getElementById('vinyl-wrap').style.display = 'flex';
+        playHiddenYT(letterData.ytId);
+      }
+
+      startTypewriter(letterData.message || "You are truly special. ✨");
+    }
+
+    function startTypewriter(fullText) {
+      const box = document.getElementById('typewriter-text');
+      let idx = 0;
+      box.innerText = "";
+      const timer = setInterval(() => {
+        if(idx < fullText.length) {
+          box.innerText += fullText.charAt(idx);
+          idx++;
+        } else {
+          clearInterval(timer);
+          document.getElementById('question-block').style.display = 'block';
+        }
+      }, 35);
+    }
+
+    function playHiddenYT(vid) {
+      const origin = window.location.origin;
+      const url = `https://www.youtube.com/embed/${vid}?enablejsapi=1&autoplay=1&loop=1&playlist=${vid}&controls=0&origin=${encodeURIComponent(origin)}`;
+      document.getElementById('yt-hidden').innerHTML = `<iframe width="200" height="200" src="${url}" frameborder="0" allow="autoplay"></iframe>`;
+    }
+
+    function dodgeCuteNo() {
+      const btn = document.getElementById('btn-no');
+      const yes = document.getElementById('btn-yes');
+      const arena = document.getElementById('arena');
+      noDodges++;
+      yesScale += 0.18;
+      yes.style.transform = `scale(${yesScale})`;
+
+      const maxX = arena.clientWidth - btn.clientWidth - 10;
+      const rx = (Math.random() - 0.5) * maxX;
+      btn.style.position = 'absolute';
+      btn.style.left = `${Math.max(5, Math.min(maxX, arena.clientWidth/2 + rx))}px`;
+
+      const cuteLines = ["Think again! 🌸", "Can't click! 🥺", "Say Yes please! 🧸", "Nope! 🎀"];
+      btn.innerText = cuteLines[noDodges % cuteLines.length];
+    }
+
+    function cuteYes() {
+      confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
+      document.getElementById('question-block').style.display = 'none';
+      document.getElementById('final-block').style.display = 'block';
+    }
+
+    /* Floating Cute Stickers */
+    const canvas = document.getElementById('floating-canvas');
+    const ctx = canvas.getContext('2d');
+    let items = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function initCanvasStickers(type) {
+      items = [];
+      let icons = ['🧸', '🌸', '💌', '✨'];
+      if(type === 'strawberry') icons = ['🍓', '🎀', '🍰', '✨'];
+      if(type === 'butterflies') icons = ['🦋', '🌸', '🌿', '✨'];
+      if(type === 'sparkles') icons = ['✨', '☁️', '🫧', '🤍'];
+
+      for(let i=0; i<25; i++) {
+        items.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 12 + 16,
+          speedY: Math.random() * 0.8 + 0.3,
+          char: icons[i % icons.length]
+        });
+      }
+      renderStickers();
+    }
+
+    function renderStickers() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      items.forEach(p => {
+        p.y -= p.speedY;
+        if(p.y < -30) { p.y = canvas.height + 30; p.x = Math.random() * canvas.width; }
+        ctx.font = `${p.size}px Arial`;
+        ctx.fillText(p.char, p.x, p.y);
+      });
+      requestAnimationFrame(renderStickers);
+    }
+  </script>
+</body>
+</html>
